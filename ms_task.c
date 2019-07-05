@@ -22,6 +22,7 @@
 #include "ms_thread.h"
 #include "ms_setting.h"
 #include "ms_atomic.h"
+#include "timeval_diff.h"
 
 /* command distribution adjustment cycle */
 #define CMD_DISTR_ADJUST_CYCLE    1000
@@ -681,25 +682,6 @@ static void ms_multi_getset_task_sch(ms_conn_t *c)
 
 
 /**
- * calculate the difference value of two time points
- *
- * @param start_time, the start time
- * @param end_time, the end time
- *
- * @return uint64_t, the difference value between start_time and end_time in us
- */
-int64_t ms_time_diff(struct timeval *start_time, struct timeval *end_time)
-{
-  int64_t endtime= end_time->tv_sec * 1000000 + end_time->tv_usec;
-  int64_t starttime= start_time->tv_sec * 1000000 + start_time->tv_usec;
-
-  assert(endtime >= starttime);
-
-  return endtime - starttime;
-} /* ms_time_diff */
-
-
-/**
  * after get the response from server for multi-get, the
  * function update the state of the task and do data verify if
  * necessary.
@@ -971,7 +953,7 @@ static void ms_update_stat_result(ms_conn_t *c)
   assert(c != NULL);
 
   gettimeofday(&c->end_time, NULL);
-  uint64_t time_diff= (uint64_t)ms_time_diff(&c->start_time, &c->end_time);
+  uint64_t time_diff= (uint64_t)timeval_subtract_usec(c->start_time, c->end_time);
 
   pthread_mutex_lock(&ms_statistic.stat_mutex);
 

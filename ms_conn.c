@@ -32,6 +32,7 @@
 #include "ms_setting.h"
 #include "ms_thread.h"
 #include "ms_atomic.h"
+#include "timeval_diff.h"
 
 #ifdef linux
 /* /usr/include/netinet/in.h defines macros from ntohs() to _bswap_nn to
@@ -2465,14 +2466,13 @@ static bool ms_need_yield(ms_conn_t *c)
 {
   ms_thread_t *ms_thread= pthread_getspecific(ms_thread_key);
   int64_t tps= 0;
-  int64_t time_diff= 0;
   struct timeval curr_time;
   ms_task_t *task= &c->curr_task;
 
   if (ms_setting.expected_tps > 0)
   {
     gettimeofday(&curr_time, NULL);
-    time_diff= ms_time_diff(&ms_thread->startup_time, &curr_time);
+    uint64_t time_diff= timeval_subtract_usec(ms_thread->startup_time, curr_time);
     tps= (int64_t)(((task->get_opt + task->set_opt) / (uint64_t)time_diff) * 1000000);
 
     /* current throughput is greater than expected throughput */

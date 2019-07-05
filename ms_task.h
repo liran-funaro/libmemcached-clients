@@ -83,10 +83,6 @@ struct conn;
 int ms_exec_task(struct conn *c);
 
 
-/* calculate the difference value of two time points */
-int64_t ms_time_diff(struct timeval *start_time, struct timeval *end_time);
-
-
 #ifdef __cplusplus
 }
 #endif

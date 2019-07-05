@@ -31,6 +31,7 @@
 #include "ms_sigsegv.h"
 #include "ms_setting.h"
 #include "ms_thread.h"
+#include "timeval_diff.h"
 
 #define PROGRAM_NAME    "memslap"
 #define PROGRAM_DESCRIPTION \
@@ -110,7 +111,7 @@ static void ms_options_parse(int argc, char *argv[]);
 static int ms_check_para(void);
 static void ms_statistic_init(void);
 static void ms_stats_init(void);
-static void ms_print_statistics(int in_time);
+static void ms_print_statistics(double runtime_sec, double difftime_sec);
 static void ms_print_memslap_stats(struct timeval *start_time,
                                    struct timeval *end_time);
 static void ms_monitor_slap_mode(void);
@@ -694,17 +695,17 @@ static void ms_stats_init()
 
 
 /* use to output the statistic */
-static void ms_print_statistics(int in_time)
+static void ms_print_statistics(double runtime_sec, double difftime_sec)
 {
   int obj_size= (int)(ms_setting.avg_key_size + ms_setting.avg_val_size);
 
   printf("\033[1;1H\033[2J\n");
-  ms_dump_format_stats(&ms_statistic.get_stat, in_time,
-                       ms_setting.stat_freq, obj_size);
-  ms_dump_format_stats(&ms_statistic.set_stat, in_time,
-                       ms_setting.stat_freq, obj_size);
-  ms_dump_format_stats(&ms_statistic.total_stat, in_time,
-                       ms_setting.stat_freq, obj_size);
+  ms_dump_format_stats(&ms_statistic.get_stat, runtime_sec,
+                       difftime_sec, obj_size);
+  ms_dump_format_stats(&ms_statistic.set_stat, runtime_sec,
+                       difftime_sec, obj_size);
+  ms_dump_format_stats(&ms_statistic.total_stat, runtime_sec,
+                       difftime_sec, obj_size);
 } /* ms_print_statistics */
 
 
@@ -787,7 +788,7 @@ static void ms_print_memslap_stats(struct timeval *start_time,
     ms_dump_stats(&ms_statistic.total_stat);
   }
 
-  int64_t time_diff= ms_time_diff(start_time, end_time);
+  uint64_t time_diff= timeval_subtract_usec(*start_time, *end_time);
   pos+= snprintf(pos,
                  sizeof(buf) - (size_t)(pos -buf),
                  "\nRun time: %.1fs Ops: %llu TPS: %.0Lf Net_rate: %.1fM/s\n",
@@ -809,7 +810,7 @@ static void ms_print_memslap_stats(struct timeval *start_time,
 /* the loop of the main thread, wait the work threads to complete */
 static void ms_monitor_slap_mode()
 {
-  struct timeval start_time, end_time;
+  struct timeval start_time, end_time, cur_time, last_time;
 
   /* Wait all the threads complete initialization. */
   pthread_mutex_lock(&ms_global.init_lock.lock);
@@ -838,6 +839,8 @@ static void ms_monitor_slap_mode()
   {
     int second= 0;
     gettimeofday(&start_time, NULL);
+    last_time = start_time;
+
     while (1)
     {
       sleep(1);
@@ -847,7 +850,11 @@ static void ms_monitor_slap_mode()
           && (ms_stats.active_conns >= ms_setting.nconns)
           && (ms_stats.active_conns <= INT_MAX))
       {
-        ms_print_statistics(second);
+        gettimeofday(&cur_time, NULL);
+        double runtime_sec = timeval_subtract_sec(start_time, cur_time);
+        double difftime_sec = timeval_subtract_sec(last_time, cur_time);
+        ms_print_statistics(runtime_sec, difftime_sec);
+        last_time = cur_time;
       }
 
       if (ms_setting.run_time <= second)

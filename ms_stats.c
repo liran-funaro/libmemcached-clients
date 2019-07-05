@@ -208,8 +208,8 @@ void ms_dump_stats(ms_stat_t *stat)
  * @param obj_size, average object size
  */
 void ms_dump_format_stats(ms_stat_t *stat,
-                          int run_time,
-                          int freq,
+                          double run_time,
+                          double freq,
                           int obj_size)
 {
   uint64_t events= 0;
@@ -231,7 +231,7 @@ void ms_dump_format_stats(ms_stat_t *stat,
   }
 
   global_average= (double)(stat->total_time / events);
-  global_tps= events / (uint64_t)run_time;
+  global_tps= events / run_time;
   global_rate= (double)events * obj_size / 1024 / 1024 / run_time;
   global_std= sqrt((stat->squares - (double)events * global_average
                     * global_average) / (double)(events - 1));
@@ -242,7 +242,7 @@ void ms_dump_format_stats(ms_stat_t *stat,
   if (diff_events >= 1)
   {
     period_average= (double)(diff_time / diff_events);
-    period_tps= diff_events / (uint64_t)freq;
+    period_tps= diff_events / freq;
     period_rate= (double)diff_events * obj_size / 1024 / 1024 / freq;
     double diff_squares= (double)stat->squares - (double)stat->pre_squares;
     period_std= sqrt((diff_squares - (double)diff_events * period_average
@@ -266,7 +266,7 @@ void ms_dump_format_stats(ms_stat_t *stat,
          "Geo_dist");
 
   printf(
-    "%-8s %-8d %-12llu %-12lld %-10.1f %-10lld %-8lld %-10lld %-10lld %-10.2f %.2f\n",
+    "%-8s %-8.2f %-12llu %-12lld %-10.1f %-10lld %-8lld %-10lld %-10lld %-10.2f %.2f\n",
     "Period",
     freq,
     (long long)diff_events,
@@ -280,7 +280,7 @@ void ms_dump_format_stats(ms_stat_t *stat,
     period_log);
 
   printf(
-    "%-8s %-8d %-12llu %-12lld %-10.1f %-10lld %-8lld %-10lld %-10lld %-10.2f %.2f\n\n",
+    "%-8s %-8.2f %-12llu %-12lld %-10.1f %-10lld %-8lld %-10lld %-10lld %-10.2f %.2f\n\n",
     "Global",
     run_time,
     (long long)events,

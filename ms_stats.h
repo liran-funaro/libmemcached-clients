@@ -57,8 +57,8 @@ void ms_dump_stats(ms_stat_t *stat);
 
 /* dump the format statistics */
 void ms_dump_format_stats(ms_stat_t *stat,
-                          int run_time,
-                          int freq,
+                          double run_time,
+                          double freq,
                           int obj_size);
 
 
