@@ -1,0 +1,21 @@
+syntax: glob
+
+*.log
+*.trs
+*.exe
+*.gz
+*.lo
+*.orig
+*.output
+*.pop
+*.rej
+*.rpm
+*.tar
+**/*.l[oa]
+**/*/*.l[oa]
+**/*/.deps
+**/*/.dirstamp
+**/*/.libs
+**/.deps
+**/.dirstamp
+**/.libs
