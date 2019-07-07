@@ -156,6 +156,7 @@ typedef struct setting
   bool binary_prot_;                     /* whether it use binary protocol */
   int expected_tps;                     /* expected throughput */
   uint32_t rep_write_srv;                    /* which servers are used to do replication writing */
+  unsigned int seed;                    /* the random seed to use */
 } ms_setting_st;
 
 extern ms_setting_st ms_setting;

@@ -89,6 +89,8 @@ static struct option long_options[]=
     OPT_TPS                },
   { (OPTIONSTRING)"rep_write",      required_argument,            NULL,
     OPT_REP_WRITE_SRV      },
+  { (OPTIONSTRING)"seed",           required_argument,            NULL,
+    OPT_SEED               },
   { (OPTIONSTRING)"verbose",        no_argument,                  NULL,
     OPT_VERBOSE            },
   { (OPTIONSTRING)"help",           no_argument,                  NULL,
@@ -330,6 +332,9 @@ static const char *ms_lookup_help(ms_options_t option)
   case OPT_REP_WRITE_SRV:
     return "The first nth servers can write data, e.g.: --rep_write=2.";
 
+  case OPT_SEED:
+    return "The random seed to use.";
+
   default:
     return "Forgot to document this option :)";
   } /* switch */
@@ -420,7 +425,7 @@ static void ms_options_parse(int argc, char *argv[])
   int option_rv;
 
   while ((option_rv= getopt_long(argc, argv, "VhURbaBs:x:T:c:X:v:d:"
-                                             "t:S:F:w:e:o:n:P:p:",
+                                             "t:S:F:w:e:o:n:P:p:r:",
                                  long_options, &option_index)) != -1)
   {
     switch (option_rv)
@@ -629,6 +634,17 @@ static void ms_options_parse(int argc, char *argv[])
       }
       break;
 
+    case OPT_SEED:                 /* --seed or -R */
+      errno= 0;
+      ms_setting.seed= (unsigned int)strtoul(optarg, (char **) NULL, 10);
+      if (errno != 0)
+      {
+        fprintf(stderr,
+                "Could not parse seed.\n");
+        exit(1);
+      }
+      break;
+
     case '?':
       /* getopt_long already printed an error message. */
       exit(1);
@@ -706,6 +722,7 @@ static void ms_print_statistics(double runtime_sec, double difftime_sec)
                        difftime_sec, obj_size);
   ms_dump_format_stats(&ms_statistic.total_stat, runtime_sec,
                        difftime_sec, obj_size);
+  fflush(stdout);
 } /* ms_print_statistics */
 
 
@@ -788,18 +805,15 @@ static void ms_print_memslap_stats(struct timeval *start_time,
     ms_dump_stats(&ms_statistic.total_stat);
   }
 
-  uint64_t time_diff= timeval_subtract_usec(*start_time, *end_time);
+  double time_diff= timeval_subtract_sec(*start_time, *end_time);
   pos+= snprintf(pos,
                  sizeof(buf) - (size_t)(pos -buf),
-                 "\nRun time: %.1fs Ops: %llu TPS: %.0Lf Net_rate: %.1fM/s\n",
-                 (double)time_diff / 1000000,
+                 "\nRun time: %.1fs Ops: %llu TPS: %.0f Net_rate: %.1fM/s\n",
+                 time_diff,
                  (unsigned long long)(ms_stats.cmd_get + ms_stats.cmd_set),
-                 (ms_stats.cmd_get
-                  + ms_stats.cmd_set) / ((long double)time_diff / 1000000),
-                 (double)(
-                          ms_stats.bytes_written
-                          + ms_stats.bytes_read) / 1024 / 1024
-                 / ((double)time_diff / 1000000));
+                 (double)(ms_stats.cmd_get + ms_stats.cmd_set) / time_diff,
+                 (double)( ms_stats.bytes_written
+                          + ms_stats.bytes_read) / 1024 / 1024 / time_diff);
   assert(pos <= buf);
 
   fprintf(stdout, "%s", buf);
@@ -897,7 +911,6 @@ static void ms_monitor_slap_mode()
 /* the main function */
 int main(int argc, char *argv[])
 {
-  srandom((unsigned int)time(NULL));
   ms_global_struct_init();
 
   /* initialization */
@@ -909,6 +922,7 @@ int main(int argc, char *argv[])
     exit(1);
   }
   ms_setting_init_post();
+  srandom(ms_setting.seed);
   ms_stats_init();
   ms_thread_init();
 

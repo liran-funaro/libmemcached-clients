@@ -26,7 +26,7 @@
 #include "ms_setting.h"
 #include "ms_conn.h"
 
-#define MAX_EXEC_NUM               0x4000000000000000      /* 1 << 62 */
+#define MAX_EXEC_NUM               ((1UL << 63) - 1)         /* Maximal value of int64 */
 #define ADDR_ALIGN(addr)    ((addr + 15) & ~(16 - 1))      /* 16 bytes aligned */
 #define RAND_CHAR_SIZE             (10 * 1024 * 1024)      /* 10M character table */
 #define RESERVED_RAND_CHAR_SIZE    (2 * 1024 * 1024)       /* reserved 2M to avoid pointer sloping over */
@@ -887,6 +887,7 @@ static void ms_setting_slapmode_init_pre()
   ms_setting.sock_per_conn= DEFAULT_SOCK_PER_CONN;
   ms_setting.expected_tps= 0;
   ms_setting.rep_write_srv= 0;
+  ms_setting.seed = (unsigned int)time(NULL);
 } /* ms_setting_slapmode_init_pre */
 
 
