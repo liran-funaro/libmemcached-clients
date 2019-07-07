@@ -212,38 +212,31 @@ void ms_dump_format_stats(ms_stat_t *stat,
                           double freq,
                           int obj_size)
 {
-  uint64_t events= 0;
-  double global_average= 0;
-  uint64_t global_tps= 0;
-  double global_rate= 0;
-  double global_std= 0;
-  double global_log= 0;
+  uint64_t events= ms_get_events(stat);
+  if (events == 0)
+    return;
 
+  const double obj_size_mb = (double)obj_size / (1<<20);
+
+  double global_average= (double)stat->total_time / events;
+  uint64_t global_tps= events / run_time;
+  double global_rate= (double)events * obj_size_mb / run_time;
+  double global_std= sqrt((stat->squares - (double)events * global_average
+                    * global_average) / (double)(events - 1));
+  double global_log= exp(stat->log_product / (double)events);
+
+  uint64_t diff_time= stat->total_time - stat->pre_total_time;
+  uint64_t diff_events= events - stat->pre_events;
   double period_average= 0;
   uint64_t period_tps= 0;
   double period_rate= 0;
   double period_std= 0;
   double period_log= 0;
-
-  if ((events= ms_get_events(stat)) == 0)
-  {
-    return;
-  }
-
-  global_average= (double)(stat->total_time / events);
-  global_tps= events / run_time;
-  global_rate= (double)events * obj_size / 1024 / 1024 / run_time;
-  global_std= sqrt((stat->squares - (double)events * global_average
-                    * global_average) / (double)(events - 1));
-  global_log= exp(stat->log_product / (double)events);
-
-  uint64_t diff_time= stat->total_time - stat->pre_total_time;
-  uint64_t diff_events= events - stat->pre_events;
   if (diff_events >= 1)
   {
-    period_average= (double)(diff_time / diff_events);
+    period_average= (double)diff_time / diff_events;
     period_tps= diff_events / freq;
-    period_rate= (double)diff_events * obj_size / 1024 / 1024 / freq;
+    period_rate= (double)diff_events * obj_size_mb / freq;
     double diff_squares= (double)stat->squares - (double)stat->pre_squares;
     period_std= sqrt((diff_squares - (double)diff_events * period_average
                       * period_average) / (double)(diff_events - 1));
@@ -271,7 +264,7 @@ void ms_dump_format_stats(ms_stat_t *stat,
     freq,
     (long long)diff_events,
     (long long)period_tps,
-    global_rate,
+    period_rate,
     (long long)(stat->get_miss - stat->pre_get_miss),
     (long long)stat->period_min_time,
     (long long)stat->period_max_time,
@@ -285,7 +278,7 @@ void ms_dump_format_stats(ms_stat_t *stat,
     run_time,
     (long long)events,
     (long long)global_tps,
-    period_rate,
+    global_rate,
     (long long)stat->get_miss,
     (long long)stat->min_time,
     (long long)stat->max_time,
