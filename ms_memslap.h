@@ -56,7 +56,8 @@ typedef enum
   OPT_OVERWRITE= 'o',
   OPT_TPS= 'P',
   OPT_REP_WRITE_SRV= 'p',
-  OPT_SEED= 'r'
+  OPT_SEED= 'r',
+  OPT_WARMUP= 'W'
 } ms_options_t;
 
 /* global statistic of response time */

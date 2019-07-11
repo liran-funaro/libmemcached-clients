@@ -91,6 +91,8 @@ static struct option long_options[]=
     OPT_REP_WRITE_SRV      },
   { (OPTIONSTRING)"seed",           required_argument,            NULL,
     OPT_SEED               },
+  { (OPTIONSTRING)"force-warmup",   no_argument,                  NULL,
+    OPT_WARMUP               },
   { (OPTIONSTRING)"verbose",        no_argument,                  NULL,
     OPT_VERBOSE            },
   { (OPTIONSTRING)"help",           no_argument,                  NULL,
@@ -335,6 +337,9 @@ static const char *ms_lookup_help(ms_options_t option)
   case OPT_SEED:
     return "The random seed to use.";
 
+  case OPT_WARMUP:
+    return "Force memslap to warmup before starting.";
+
   default:
     return "Forgot to document this option :)";
   } /* switch */
@@ -424,7 +429,7 @@ static void ms_options_parse(int argc, char *argv[])
   int option_index= 0;
   int option_rv;
 
-  while ((option_rv= getopt_long(argc, argv, "VhURbaBs:x:T:c:X:v:d:"
+  while ((option_rv= getopt_long(argc, argv, "VhURbaBsW:x:T:c:X:v:d:"
                                              "t:S:F:w:e:o:n:P:p:r:",
                                  long_options, &option_index)) != -1)
   {
@@ -643,6 +648,10 @@ static void ms_options_parse(int argc, char *argv[])
                 "Could not parse seed.\n");
         exit(1);
       }
+      break;
+
+    case OPT_WARMUP:
+      ms_setting.force_warmup = true;
       break;
 
     case '?':

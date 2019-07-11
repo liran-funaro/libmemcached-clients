@@ -157,6 +157,7 @@ typedef struct setting
   int expected_tps;                     /* expected throughput */
   uint32_t rep_write_srv;                    /* which servers are used to do replication writing */
   unsigned int seed;                    /* the random seed to use */
+  bool force_warmup;                    /* force memslap to warmp before start */
 } ms_setting_st;
 
 extern ms_setting_st ms_setting;

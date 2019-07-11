@@ -888,6 +888,7 @@ static void ms_setting_slapmode_init_pre()
   ms_setting.expected_tps= 0;
   ms_setting.rep_write_srv= 0;
   ms_setting.seed = (unsigned int)time(NULL);
+  ms_setting.force_warmup = false;
 } /* ms_setting_slapmode_init_pre */
 
 

@@ -395,16 +395,12 @@ static int ms_conn_init(ms_conn_t *c,
 static void ms_warmup_num_init(ms_conn_t *c)
 {
   /* no set operation, preset all the items in the window  */
-  if (ms_setting.cmd_distr[CMD_SET].cmd_prop < PROP_ERROR)
-  {
+  if (ms_setting.force_warmup || ms_setting.cmd_distr[CMD_SET].cmd_prop < PROP_ERROR)
     c->warmup_num= c->win_size;
-    c->remain_warmup_num= c->warmup_num;
-  }
   else
-  {
     c->warmup_num= 0;
-    c->remain_warmup_num= c->warmup_num;
-  }
+
+  c->remain_warmup_num= c->warmup_num;
 } /* ms_warmup_num_init */
 
 
