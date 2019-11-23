@@ -1,7 +1,3 @@
-syntax: regexp
-^[^.]+$
-
-syntax: glob
 
 *.o
 *.am
